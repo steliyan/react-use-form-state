@@ -245,7 +245,15 @@ export default function useFormState(initialState, options) {
         const partialNewState = { [name]: value };
         const newValues = { ...formState.current.values, ...partialNewState };
 
-        formOptions.onChange(e, formState.current.values, newValues);
+        formOptions.onChange(e, formState.current.values, newValues, {
+          setFieldError: error => {
+            // Schedule for the next tick in case the setFieldError is called synchronously
+            setImmediate(() => {
+              formState.setValidity({ [name]: false });
+              formState.setError({ [name]: error });
+            });
+          },
+        });
 
         if (!inputOptions.validateOnBlur) {
           validate(e, value, newValues);
